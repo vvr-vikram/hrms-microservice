@@ -1,0 +1,317 @@
+{
+	"info": {
+		"_postman_id": "c71a3962-d04b-4a57-8bb0-bc7c5b61e27a",
+		"name": "HRMS Microservices API (PostgreSQL)",
+		"description": "Postman collection to test Employee, Attendance, Leave, and Payroll microservices through the API Gateway (Port 8080).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Employee Service",
+			"item": [
+				{
+					"name": "Onboard Employee (Vikram V)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Vikram\",\n    \"lastName\": \"V\",\n    \"email\": \"vikram.v@example.com\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Tech Street, Silicon Valley\",\n    \"dateOfBirth\": \"1990-05-15\",\n    \"gender\": \"MALE\",\n    \"position\": \"Software Engineer\",\n    \"baseSalary\": 75000.0,\n    \"joiningDate\": \"2026-08-12\",\n    \"role\": \"ROLE_EMPLOYEE\",\n    \"departmentId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/employees/onboard",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"employees",
+								"onboard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/employees/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"employees",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Employees",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/employees?page=0&size=10&sortBy=id&direction=asc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"employees"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "direction",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Attendance Service",
+			"item": [
+				{
+					"name": "Mark Check-in",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/attendance/checkin/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"attendance",
+								"checkin",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Check-out",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/attendance/checkout/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"attendance",
+								"checkout",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee Attendance History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/attendance/employee/1?startDate=2026-08-01&endDate=2026-08-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"attendance",
+								"employee",
+								"1"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2026-08-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2026-08-31"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Leave Service",
+			"item": [
+				{
+					"name": "Apply for Leave",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"employeeId\": 1,\n    \"leaveType\": \"ANNUAL\",\n    \"startDate\": \"2026-08-15\",\n    \"endDate\": \"2026-08-17\",\n    \"reason\": \"Personal family event\",\n    \"comments\": \"Applying in advance\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/leaves/apply",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"leaves",
+								"apply"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Leave Request",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/leaves/1/approve?approvedBy=Vikram V",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"leaves",
+								"1",
+								"approve"
+							],
+							"query": [
+								{
+									"key": "approvedBy",
+									"value": "Vikram V"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee Leaves",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/leaves/employee/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"leaves",
+								"employee",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payroll Service",
+			"item": [
+				{
+					"name": "Generate Monthly Payroll",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payroll/generate?employeeId=1&year=2026&month=8",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payroll",
+								"generate"
+							],
+							"query": [
+								{
+									"key": "employeeId",
+									"value": "1"
+								},
+								{
+									"key": "year",
+									"value": "2026"
+								},
+								{
+									"key": "month",
+									"value": "8"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee Payroll History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payroll/employee/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payroll",
+								"employee",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

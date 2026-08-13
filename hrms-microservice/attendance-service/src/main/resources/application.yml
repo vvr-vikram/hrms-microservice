@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: attendance-service
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+    banner-mode: off
+
+  # Database Configuration - Using PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5000/hrms_attendance_db
+    username: postgres
+    password: 1254
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: HikariPool-Attendance
+      
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        use_sql_comments: true
+    show-sql: true
+    open-in-view: false
+
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: Asia/Kolkata
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+
+server:
+  port: 8082
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    root: INFO
+    com.hrms: DEBUG
+    org.hibernate: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+
+# Custom application properties
+app:
+  attendance:
+    check-in-time: "09:00"
+    check-out-time: "18:00"
+    grace-period-minutes: 15
+    overtime-threshold-minutes: 30
+    working-hours-per-day: 8.0
+    late-threshold-minutes: 15
+    half-day-threshold-minutes: 240
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
