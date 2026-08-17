@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  hrms-micro-db:
+    image: postgres:16-alpine
+    container_name: hrms-micro-db
+    ports:
+      - "5000:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1254
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+  employee-service:
+    build: ./employee-service
+    container_name: employee-service
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - DB_HOST=hrms-micro-db
+      - DB_PORT=5432
+      - DB_PASSWORD=1254
+    depends_on:
+      hrms-micro-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  attendance-service:
+    build: ./attendance-service
+    container_name: attendance-service
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - DB_HOST=hrms-micro-db
+      - DB_PORT=5432
+      - DB_PASSWORD=1254
+    depends_on:
+      hrms-micro-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  leave-service:
+    build: ./leave-service
+    container_name: leave-service
+    ports:
+      - "8083:8083"
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - DB_HOST=hrms-micro-db
+      - DB_PORT=5432
+      - DB_PASSWORD=1254
+    depends_on:
+      hrms-micro-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  payroll-service:
+    build: ./payroll-service
+    container_name: payroll-service
+    ports:
+      - "8084:8084"
+    environment:
+      - EUREKA_URI=http://eureka-server:8761/eureka/
+      - DB_HOST=hrms-micro-db
+      - DB_PORT=5432
+      - DB_PASSWORD=1254
+    depends_on:
+      hrms-micro-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
