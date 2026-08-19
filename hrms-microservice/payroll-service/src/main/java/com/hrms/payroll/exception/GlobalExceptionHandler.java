@@ -27,6 +27,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(org.springframework.web.client.RestClientException.class)
+    public ResponseEntity<Map<String, Object>> handleRestClientException(
+            org.springframework.web.client.RestClientException ex, WebRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("message", "A downstream microservice is temporarily unavailable. Please try again later.");
+        response.put("status", HttpStatus.SERVICE_UNAVAILABLE.value());
+        response.put("error", "Service Unavailable");
+        response.put("path", request.getDescription(false).replace("uri=", ""));
+        
+        return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGlobalException(
             Exception ex, WebRequest request) {

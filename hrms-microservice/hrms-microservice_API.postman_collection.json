@@ -38,6 +38,25 @@
 					"response": []
 				},
 				{
+					"name": "Get Config Active Env",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/employees/config/env",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"employees",
+								"config",
+								"env"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Employee by ID",
 					"request": {
 						"method": "GET",

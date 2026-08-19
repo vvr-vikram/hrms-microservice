@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   hrms-micro-db:
     image: postgres:16-alpine
@@ -18,6 +16,21 @@ services:
       timeout: 5s
       retries: 5
 
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./config-repo:/app/config-repo
+    environment:
+      - CONFIG_REPO_PATH=file:///app/config-repo
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8888/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
@@ -35,9 +48,12 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
       - EUREKA_URI=http://eureka-server:8761/eureka/
     depends_on:
       eureka-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
 
   employee-service:
@@ -46,6 +62,7 @@ services:
     ports:
       - "8081:8081"
     environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
       - EUREKA_URI=http://eureka-server:8761/eureka/
       - DB_HOST=hrms-micro-db
       - DB_PORT=5432
@@ -54,6 +71,8 @@ services:
       hrms-micro-db:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
 
   attendance-service:
@@ -62,6 +81,7 @@ services:
     ports:
       - "8082:8082"
     environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
       - EUREKA_URI=http://eureka-server:8761/eureka/
       - DB_HOST=hrms-micro-db
       - DB_PORT=5432
@@ -70,6 +90,8 @@ services:
       hrms-micro-db:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
 
   leave-service:
@@ -78,6 +100,7 @@ services:
     ports:
       - "8083:8083"
     environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
       - EUREKA_URI=http://eureka-server:8761/eureka/
       - DB_HOST=hrms-micro-db
       - DB_PORT=5432
@@ -86,6 +109,8 @@ services:
       hrms-micro-db:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
 
   payroll-service:
@@ -94,6 +119,7 @@ services:
     ports:
       - "8084:8084"
     environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
       - EUREKA_URI=http://eureka-server:8761/eureka/
       - DB_HOST=hrms-micro-db
       - DB_PORT=5432
@@ -102,6 +128,8 @@ services:
       hrms-micro-db:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
 
 volumes:

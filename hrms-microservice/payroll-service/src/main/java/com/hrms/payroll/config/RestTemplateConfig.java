@@ -11,6 +11,10 @@ public class RestTemplateConfig {
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory = 
+            new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(3000); // 3 seconds connect timeout
+        factory.setReadTimeout(3000);    // 3 seconds read timeout
+        return new RestTemplate(factory);
     }
 }

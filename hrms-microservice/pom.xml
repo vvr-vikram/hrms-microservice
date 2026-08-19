@@ -28,6 +28,7 @@
     </properties>
 
     <modules>
+        <module>config-server</module>
         <module>eureka-server</module>
         <module>api-gateway</module>
         <module>employee-service</module>
