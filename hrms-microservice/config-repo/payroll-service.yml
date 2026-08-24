@@ -24,7 +24,7 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       pool-name: HikariPool-Payroll
-      
+
   jpa:
     database: POSTGRESQL
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -62,3 +62,17 @@ logging:
     org.hibernate: INFO
     org.hibernate.SQL: DEBUG
     org.springframework.web: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      employeeServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 2
+  retry:
+    instances:
+      employeeServiceRetry:
+        maxAttempts: 3
+        waitDuration: 500ms

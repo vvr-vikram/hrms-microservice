@@ -9,6 +9,7 @@ import com.hrms.payroll.exception.ResourceNotFoundException;
 import com.hrms.payroll.repository.PayrollRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ import java.util.List;
 @Transactional
 public class PayrollService {
 
+	private final CircuitBreakerFactory<?, ?>cbFactory;
     private final PayrollRepository payrollRepository;
     private final RestTemplate restTemplate;
 
@@ -42,20 +44,32 @@ public class PayrollService {
     private static final BigDecimal BONUS_PERCENTAGE_MEDIUM = BigDecimal.valueOf(0.10);
     private static final BigDecimal BONUS_PERCENTAGE_LOW = BigDecimal.valueOf(0.05);
 
-    private EmployeeDTO getEmployeeDetails(Long employeeId) {
-        try {
-            ResponseEntity<EmployeeDTO> response = restTemplate.getForEntity(
-                "http://employee-service/employees/" + employeeId, 
-                EmployeeDTO.class
-            );
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
-            }
-        } catch (Exception e) {
-            log.error("Failed to fetch employee details for id {}: {}", employeeId, e.getMessage());
-        }
-        return null;
-    }
+   private EmployeeDTO getEmployeeDetails(Long employeeId) {
+	   return cbFactory.create("employeeServiceCB").run(
+			   ()->{
+		   ResponseEntity<EmployeeDTO> response = restTemplate.getForEntity(
+				   "http://employee-service/employees/"+employeeId,
+				   EmployeeDTO.class);
+		   if (response.getStatusCode().is2xxSuccessful() && response.getBody() !=null) {
+			   return response.getBody();
+		   }
+		   return null;
+	   },throwable ->getEmployeeDetailsFallback(employeeId, throwable)
+			   );
+   }
+   
+   private EmployeeDTO getEmployeeDetailsFallback(Long employeeId, Throwable throwable) {
+	   log.error("circuit opened for fallback triggered for employee ID:{}.Error:{}",
+			   employeeId,throwable.getMessage());
+	   
+		return EmployeeDTO.builder()
+				.id(employeeId)
+				.firstName("User temporarily")
+				.lastName("unavailable")
+				.employeeCode("N/A")
+				.baseSalary(0.0)
+				.build();
+   }
 
     private List<AttendanceDTO> getAttendanceHistory(Long employeeId, LocalDate startDate, LocalDate endDate) {
         try {
