@@ -98,6 +98,12 @@
             <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
         </dependency>
 
+        <!-- Spring Boot AOP (Required for annotations) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
 		<!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

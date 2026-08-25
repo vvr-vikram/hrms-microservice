@@ -71,6 +71,11 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         permittedNumberOfCallsInHalfOpenState: 2
+  bulkhead:
+    instances:
+      employeeServiceBH:
+        maxConcurrentCalls: 5
+        maxWaitDuration: 100ms
   retry:
     instances:
       employeeServiceRetry:
