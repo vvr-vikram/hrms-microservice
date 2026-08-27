@@ -1,5 +1,7 @@
 package com.hrms.payroll.controller;
 
+import com.hrms.payroll.dto.GeneratePayrollRequest;
+import jakarta.validation.Valid;
 import com.hrms.payroll.dto.PayrollDTO;
 import com.hrms.payroll.service.PayrollService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,12 +26,10 @@ public class PayrollController {
     @PostMapping("/generate")
     @Operation(summary = "Generate payroll for employee")
     public ResponseEntity<PayrollDTO> generatePayroll(
-            @RequestParam Long employeeId,
-            @RequestParam int year,
-            @RequestParam int month) {
+            @Valid @RequestBody GeneratePayrollRequest request) {
         log.info("POST /api/payroll/generate - Generating payroll for employee: {}, {}-{}", 
-                employeeId, year, month);
-        PayrollDTO payroll = payrollService.generatePayroll(employeeId, year, month);
+                request.getEmployeeId(), request.getYear(), request.getMonth());
+        PayrollDTO payroll = payrollService.generatePayroll(request.getEmployeeId(), request.getYear(), request.getMonth());
         return new ResponseEntity<>(payroll, HttpStatus.CREATED);
     }
 
