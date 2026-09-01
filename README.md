@@ -1,6 +1,6 @@
 # HRMS Microservices System
 
-A decoupled, multi-module microservice architecture for Human Resource Management (HRMS) built using **Spring Boot**, **Spring Cloud (Eureka Server, API Gateway & Centralized Config Server)**, **Resilience4j (Circuit Breakers & Bulkheads)**, and **PostgreSQL**.
+A decoupled, multi-module microservice architecture for Human Resource Management (HRMS) built using **Spring Boot**, **Spring Cloud (Eureka Server, API Gateway & Centralized Config Server)**, **Resilience4j (Circuit Breakers & Bulkheads)**, **Distributed Request Tracing (Correlation IDs)**, and **PostgreSQL**.
 
 ---
 
@@ -36,7 +36,7 @@ The project consists of 7 core modules communicating over REST and registered vi
 
 1. **`eureka-server` (Port 8761)**: Service Registry for active microservice discovery and heartbeat monitoring.
 2. **`config-server` (Port 8888)**: Centralized configuration manager serving parameters from the local `config-repo` directory.
-3. **`api-gateway` (Port 8080)**: Central routing manager. Directs client calls:
+3. **`api-gateway` (Port 8080)**: Central routing manager and request trace generator. Directs client calls:
    - `/employees/**` -> `employee-service`
    - `/api/attendance/**` -> `attendance-service`
    - `/api/leaves/**` -> `leave-service`
@@ -45,6 +45,21 @@ The project consists of 7 core modules communicating over REST and registered vi
 5. **`attendance-service` (Port 8082)**: Mark daily check-ins and check-outs.
 6. **`leave-service` (Port 8083)**: Apply for and approve employee leaves.
 7. **`payroll-service` (Port 8084)**: Generates monthly payroll slips. Interacts over REST to pull data from other modules and uses Resilience4j for communication safety.
+
+---
+
+## 🔍 Distributed Observability & Request Tracing (Day 11)
+
+To trace and debug requests as they flow across multiple microservice boundaries, we implement **Correlation ID-based distributed tracing**:
+* **Gateway Filter (`CorrelationTrackingFilter`)**: Inspects every incoming HTTP request. If no `X-Correlation-Id` header is found, it generates a unique UUID and attaches it to the request and response headers.
+* **MDC Servlet Filters (`CorrelationFilter`)**: Extracts the `X-Correlation-Id` from HTTP headers and stores it in SLF4J's **MDC (Mapped Diagnostic Context)** inside `payroll-service` and `employee-service`.
+* **REST Client Interceptor (`RestTemplateConfig`)**: Copies the correlation ID from MDC and automatically appends it to downstream REST requests.
+* **Unified Console Log Pattern**: All microservices log statements are formatted with `[TraceId: %X{correlationId}]`:
+  ```text
+  2026-09-01 11:30:15 [http-nio-8080-exec-1] [TraceId: c4b1e5a2-97dc-4a61-82ef-4e3b1c67d8f9] INFO  CorrelationTrackingFilter - Generated new Correlation-ID
+  2026-09-01 11:30:16 [http-nio-8084-exec-2] [TraceId: c4b1e5a2-97dc-4a61-82ef-4e3b1c67d8f9] INFO  PayrollService - Generating payroll for employee: 1
+  2026-09-01 11:30:16 [http-nio-8081-exec-3] [TraceId: c4b1e5a2-97dc-4a61-82ef-4e3b1c67d8f9] INFO  EmployeeService - Fetching employee with id: 1
+  ```
 
 ---
 
@@ -123,22 +138,31 @@ docker compose up -d --build
 Import the Postman collection file located in the root of the project to test the microservices through the gateway:
 👉 **[`hrms-microservice_API.postman_collection.json`](file:///c:/Users/Vigneshxbs/eclipse-workspace/hrms-microservice/hrms-microservice_API.postman_collection.json)**
 
-### Validating DTO Request Bodies (Day 10 Test):
-1. **URL**: `POST http://localhost:8080/api/payroll/generate` (Headers: `Content-Type: application/json`)
-2. **Success Payload**:
-   ```json
-   {
-       "employeeId": 1,
-       "year": 2026,
-       "month": 8
-   }
-   ```
-3. **Invalid Validation Payload**:
-   ```json
-   {
-       "employeeId": -5,
-       "year": 2026,
-       "month": 15
-   }
-   ```
-   *Expected Response:* **`400 Bad Request`** returning validation error fields.
+### 1. Validating DTO Request Bodies (Day 10 Test):
+* **URL**: `POST http://localhost:8080/api/payroll/generate` (Headers: `Content-Type: application/json`)
+* **Success Payload**:
+  ```json
+  {
+      "employeeId": 1,
+      "year": 2026,
+      "month": 8
+  }
+  ```
+* **Invalid Validation Payload**:
+  ```json
+  {
+      "employeeId": -5,
+      "year": 2026,
+      "month": 15
+  }
+  ```
+  *Expected Response:* **`400 Bad Request`** returning validation error fields.
+
+### 2. Verifying Distributed Request Tracing (Day 11 Test):
+Send the payroll generation request in Postman, then check your container logs in PowerShell:
+```powershell
+docker logs api-gateway
+docker logs payroll-service
+docker logs employee-service
+```
+Verify that the exact same `[TraceId: ...]` appears in the logs of all three containers for that single request.
